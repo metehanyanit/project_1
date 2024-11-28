@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useStore } from '../store/useStore';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { ScrollText, Book, Sword, Shield } from 'lucide-react';
+import { ScrollText, Book, Sword, Shield, Terminal, StopCircle } from 'lucide-react';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
@@ -44,36 +44,39 @@ export function Dashboard() {
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8">
+    <div className="w-full space-y-8 mt-8">
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <StatCard
-          icon={<ScrollText className="w-6 h-6" />}
-          title="Total Entries"
+          icon={<Scroll className="w-8 h-8 text-amber-700" />}
+          title="Total Artifacts"
           value={stats.total}
+          className="bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-200"
         />
         <StatCard
-          icon={<Book className="w-6 h-6" />}
-          title="Unique Types"
+          icon={<Book className="w-8 h-8 text-emerald-700" />}
+          title="Types of Lore"
           value={stats.byType.length}
+          className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-2 border-emerald-200"
         />
         <StatCard
-          icon={<Sword className="w-6 h-6" />}
-          title="Most Common Type"
+          icon={<Sword className="w-8 h-8 text-red-700" />}
+          title="Most Common"
           value={stats.byType[0]?.name || 'N/A'}
+          className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-200"
         />
         <StatCard
-          icon={<Shield className="w-6 h-6" />}
+          icon={<Shield className="w-8 h-8 text-blue-700" />}
           title="Sources"
           value={stats.bySource.length}
+          className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200"
         />
       </div>
 
-      {/* Charts */}
+      {/* Charts with themed styling */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Distribution by Type */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold mb-4">Distribution by Type</h3>
+        <div className="bg-parchment p-6 rounded-lg shadow-md border-2 border-amber-300">
+          <h3 className="text-xl font-medieval text-amber-900 mb-4">Distribution of Artifacts</h3>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats.byType}>
@@ -86,9 +89,8 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* Source Distribution */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold mb-4">Source Distribution</h3>
+        <div className="bg-parchment p-6 rounded-lg shadow-md border-2 border-amber-300">
+          <h3 className="text-xl font-medieval text-amber-900 mb-4">Source Origins</h3>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -113,9 +115,9 @@ export function Dashboard() {
       </div>
 
       {/* Recent Entries Table */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="p-4 border-b">
-          <h3 className="text-lg font-semibold">Recent Entries</h3>
+      <div className="bg-parchment rounded-lg shadow-md overflow-hidden border-2 border-amber-300">
+        <div className="p-4 border-b border-amber-300 bg-gradient-to-r from-amber-100/50">
+          <h3 className="text-xl font-medieval text-amber-900">Recent Discoveries</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -204,6 +206,79 @@ function SearchBar() {
             className="w-32 px-4 py-2 border rounded-lg"
             onChange={(e) => setFilters(prev => ({ ...prev, maxLevel: parseInt(e.target.value) }))}
           />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ProcessingTerminal() {
+  const { processingLogs, isProcessing, setShouldStop, processedCount } = useStore();
+  const terminalRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (terminalRef.current) {
+      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+    }
+  }, [processingLogs]);
+
+  const handleStop = () => {
+    setShouldStop(true);
+  };
+
+  if (!processingLogs.length) return null;
+
+  return (
+    <div className="w-full max-w-2xl mx-auto mt-4">
+      <div className="bg-gray-900 rounded-lg shadow-lg overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-2 bg-gray-800">
+          <div className="flex items-center gap-2">
+            <Terminal className="w-4 h-4 text-gray-400" />
+            <span className="text-sm font-mono text-gray-300">Processing Log</span>
+          </div>
+          {isProcessing && (
+            <button
+              onClick={handleStop}
+              className="flex items-center gap-1 px-2 py-1 text-sm text-red-400 hover:text-red-300 transition-colors"
+            >
+              <StopCircle className="w-4 h-4" />
+              Stop Processing
+            </button>
+          )}
+        </div>
+        <div className="px-4 py-2 bg-gray-800 border-t border-gray-700">
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-300">
+              Processed Items: <span className="text-green-400">{processedCount}</span>
+            </span>
+          </div>
+        </div>
+        <div 
+          ref={terminalRef}
+          className="p-4 h-48 overflow-y-auto font-mono text-sm"
+        >
+          {processingLogs.map((log, index) => (
+            <div
+              key={index}
+              className={`mb-1 ${
+                log.type === 'error' 
+                  ? 'text-red-400' 
+                  : log.type === 'success'
+                    ? 'text-green-400'
+                    : log.type === 'progress'
+                      ? 'text-blue-400'
+                      : 'text-gray-300'
+              }`}
+            >
+              <span className="text-gray-500">[{log.timestamp}]</span>{' '}
+              {log.message}
+              {log.data && (
+                <pre className="ml-4 text-xs text-gray-400 overflow-x-auto">
+                  {JSON.stringify(log.data, null, 2)}
+                </pre>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>
