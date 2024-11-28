@@ -1,12 +1,25 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useStore } from '../store/useStore';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { ScrollText, Book, Sword, Shield } from 'lucide-react';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
+interface SearchFilters {
+  type: string[];
+  source: string[];
+  minLevel?: number;
+  maxLevel?: number;
+  searchTerm: string;
+}
+
 export function Dashboard() {
   const { data } = useStore();
+  const [filters, setFilters] = useState<SearchFilters>({
+    type: [],
+    source: [],
+    searchTerm: ''
+  });
 
   const stats = useMemo(() => {
     const typeCount = data.reduce((acc, item) => {
@@ -141,6 +154,56 @@ function StatCard({ icon, title, value }: { icon: React.ReactNode; title: string
         <div>
           <p className="text-sm text-gray-500">{title}</p>
           <p className="text-2xl font-semibold">{value}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SearchBar() {
+  const [filters, setFilters] = useState<SearchFilters>({
+    type: [],
+    source: [],
+    searchTerm: ''
+  });
+
+  return (
+    <div className="w-full max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md">
+      <div className="flex flex-col gap-4">
+        <div className="flex gap-4">
+          <input
+            type="text"
+            placeholder="Search entities..."
+            className="flex-1 px-4 py-2 border rounded-lg"
+            onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
+          />
+          <select 
+            multiple
+            className="px-4 py-2 border rounded-lg"
+            onChange={(e) => setFilters(prev => ({ 
+              ...prev, 
+              type: Array.from(e.target.selectedOptions, option => option.value)
+            }))}
+          >
+            <option value="character">Characters</option>
+            <option value="spell">Spells</option>
+            <option value="item">Items</option>
+          </select>
+        </div>
+        
+        <div className="flex gap-4">
+          <input
+            type="number"
+            placeholder="Min Level"
+            className="w-32 px-4 py-2 border rounded-lg"
+            onChange={(e) => setFilters(prev => ({ ...prev, minLevel: parseInt(e.target.value) }))}
+          />
+          <input
+            type="number"
+            placeholder="Max Level"
+            className="w-32 px-4 py-2 border rounded-lg"
+            onChange={(e) => setFilters(prev => ({ ...prev, maxLevel: parseInt(e.target.value) }))}
+          />
         </div>
       </div>
     </div>
